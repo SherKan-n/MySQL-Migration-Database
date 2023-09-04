@@ -1,0 +1,25 @@
+{
+   "name": "mysql-migration",
+   "version": "1.1.1",
+   "description": "Migration for mysql database",
+   "main": "index.js",
+   "bin": {
+      "mysql-migration": "./index.js"
+   },
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "keywords": [
+      "mysql migration",
+      "migration",
+      "mysql"
+   ],
+   "dependencies": {
+      "mysql": "^2.18.1",
+      "moment": "^2.24.0",
+      "fs": "0.0.1-security",
+      "commander": "^2.20.0"
+   },
+   "author": "SherKan",
+   "license": "SEE LICENSE IN LICENSE.md"
+}
