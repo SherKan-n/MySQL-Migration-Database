@@ -1,6 +1,6 @@
 {
    "name": "mysql-migration",
-   "version": "1.1.1",
+   "version": "1.2.0",
    "description": "Migration for mysql database",
    "main": "index.js",
    "bin": {
@@ -15,10 +15,10 @@
       "mysql"
    ],
    "dependencies": {
-      "mysql": "^2.18.1",
-      "moment": "^2.24.0",
+      "commander": "^13.1.0",
       "fs": "0.0.1-security",
-      "commander": "^2.20.0"
+      "moment": "^2.30.1",
+      "mysql2": "^3.13.0"
    },
    "author": "SherKan",
    "license": "SEE LICENSE IN LICENSE.md"

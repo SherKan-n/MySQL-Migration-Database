@@ -64,6 +64,16 @@ function deleteMigration(connection, migration, batch) {
    });
 }
 //---------------------------------------
+function getAllBatches(connection) {
+   return new Promise((resolve) => {
+      connection.query("SELECT `batch`, `migration` FROM `migrations`;", (error, results) => {
+         if (error) throw error;
+         resolve(results?.length > 0 ? results : []);
+      });
+   });
+}
+//---------------------------------------
 module.exports = {
-   checkTableMigrations, createTableMigrations, getAllMigrations, getCurrentBatch, insertMigration, deleteMigration
+   checkTableMigrations, createTableMigrations, getAllMigrations, getCurrentBatch, insertMigration, deleteMigration,
+   getAllBatches
 }
