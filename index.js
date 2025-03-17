@@ -39,6 +39,6 @@ program
 program
    .command('batch <dbName>')
    .description('Get the batched migrations')
-   .action(() => require('./src/commands/batch'));
+   .action((dbName) => require('./src/commands/batch')(dbName));
 //---------------------------------------
 program.parse(process.argv);
