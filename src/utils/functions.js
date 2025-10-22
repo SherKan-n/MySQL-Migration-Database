@@ -1,79 +1,66 @@
-function checkTableMigrations(connection) {
-   return new Promise((resolve) => {
-      connection.query("SELECT `id` FROM `migrations` LIMIT 1;", (error) => {
-         if (error) resolve(false);
-         else resolve(true);
-      });
-   });
+async function checkTableMigrations(connection) {
+    try {
+        await connection.promise().query("SELECT `id` FROM `migrations` LIMIT 1;");
+        return true;
+    } catch (error) {
+        if (error && error.code === "ER_NO_SUCH_TABLE") return false;
+        throw error;
+    }
 }
 //---------------------------------------
-function createTableMigrations(connection) {
-   return new Promise((resolve) => {
-      const query = "CREATE TABLE `migrations` (\
-         `id` INT NOT NULL AUTO_INCREMENT,\
-         `migration` VARCHAR(255) NOT NULL,\
-         `batch` INT NOT NULL DEFAULT 1,\
-         `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\
-         PRIMARY KEY (`id`));"
-      connection.query(query, (error) => {
-         if (error) throw error;
-         resolve(true);
-      });
-   });
+async function createTableMigrations(connection) {
+    const query =
+        "CREATE TABLE `migrations` (\
+      `id` INT NOT NULL AUTO_INCREMENT,\
+      `migration` VARCHAR(255) NOT NULL,\
+      `batch` INT NOT NULL DEFAULT 1,\
+      `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\
+      PRIMARY KEY (`id`));";
+    await connection.promise().query(query);
+    return true;
 }
 //---------------------------------------
-function getAllMigrations(connection, batch = null) {
-   return new Promise((resolve) => {
-      let query = "SELECT `migration` FROM `migrations`";
-      if (batch) query += " WHERE `batch` > ?;";
-      connection.query(query, [batch], (error, results) => {
-         if (error) throw error;
-         if (results?.length > 0) resolve(results);
-         else resolve([]);
-      });
-   });
+async function getAllMigrations(connection, batch = null) {
+    let query = "SELECT `migration` FROM `migrations`";
+    const params = [];
+    if (batch !== null && batch !== undefined) {
+        query += " WHERE `batch` > ?";
+        params.push(batch);
+    }
+    const [results] = await connection.promise().query(`${query};`, params);
+    return Array.isArray(results) ? results : [];
 }
 //---------------------------------------
-function getCurrentBatch(connection) {
-   return new Promise((resolve) => {
-      connection.query("SELECT `batch` FROM `migrations` ORDER BY `batch` DESC LIMIT 1;", (error, results) => {
-         if (error) throw error;
-         if (results?.length > 0) resolve(results[0].batch);
-         else resolve(0);
-      });
-   });
+async function getCurrentBatch(connection) {
+    const [results] = await connection
+        .promise()
+        .query("SELECT `batch` FROM `migrations` ORDER BY `batch` DESC LIMIT 1;");
+    return Array.isArray(results) && results.length > 0 ? results[0].batch : 0;
 }
 //---------------------------------------
-function insertMigration(connection, migration, batch) {
-   return new Promise((resolve) => {
-      const query = `INSERT INTO \`migrations\` (\`migration\`, \`batch\`) VALUES ('${migration}', '${batch}');`
-      connection.query(query, (error) => {
-         if (error) throw error;
-         resolve(true);
-      });
-   });
+async function insertMigration(connection, migration, batch) {
+    const query = "INSERT INTO `migrations` (`migration`, `batch`) VALUES (?, ?);";
+    await connection.promise().query(query, [migration, batch]);
+    return true;
 }
 //---------------------------------------
-function deleteMigration(connection, migration, batch) {
-   return new Promise((resolve) => {
-      const query = `DELETE FROM \`migrations\` WHERE \`migration\` = '${migration}' AND \`batch\` > '${batch}';`
-      connection.query(query, (error) => {
-         if (error) throw error;
-         resolve(true);
-      });
-   });
+async function deleteMigration(connection, migration, batch) {
+    const query = "DELETE FROM `migrations` WHERE `migration` = ? AND `batch` > ?;";
+    await connection.promise().query(query, [migration, batch]);
+    return true;
 }
 //---------------------------------------
-function getAllBatches(connection) {
-   return new Promise((resolve) => {
-      connection.query("SELECT `batch`, `migration` FROM `migrations`;", (error, results) => {
-         if (error) throw error;
-         resolve(results?.length > 0 ? results : []);
-      });
-   });
+async function getAllBatches(connection) {
+    const [results] = await connection.promise().query("SELECT `batch`, `migration` FROM `migrations`;");
+    return Array.isArray(results) ? results : [];
 }
 //---------------------------------------
 module.exports = {
-   checkTableMigrations, createTableMigrations, getAllMigrations, getCurrentBatch, insertMigration, deleteMigration,
-   getAllBatches
-}
+    checkTableMigrations,
+    createTableMigrations,
+    getAllMigrations,
+    getCurrentBatch,
+    insertMigration,
+    deleteMigration,
+    getAllBatches,
+};
