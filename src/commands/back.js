@@ -21,6 +21,7 @@ const {
     getCurrentBatch,
     deleteMigration,
 } = require("../utils/functions");
+const { loadModule } = require("../utils/moduleLoader");
 //==============================================================================
 async function back_migration(dbName, batch) {
     const connection = {};
@@ -68,7 +69,7 @@ async function back_migration(dbName, batch) {
                 console.warn("\x1b[33m%s\x1b[0m", `Warning: Migration "${file.migration}" not found.`);
             } else {
                 const migrationPath = `${currentPath}/migrations/${dbName}_db/${file.migration}`;
-                const migration = require(migrationPath);
+                const migration = await loadModule(migrationPath);
                 try {
                     await migration.down(connection[dbName]);
                     await deleteMigration(connection[dbName], file.migration, batchNumber);
@@ -78,8 +79,6 @@ async function back_migration(dbName, batch) {
                     );
                 } catch (err) {
                     console.warn("\x1b[33m%s\x1b[0m", `Warning: "${err}" in migration "${file.migration}".`);
-                } finally {
-                    delete require.cache[require.resolve(migrationPath)];
                 }
             }
         }

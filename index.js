@@ -13,6 +13,8 @@ program
         console.log(`  rollback <dbName> <batch> Rollback migration`);
         console.log(`  create <name> <dbName>    Create a new migration`);
         console.log(`  batch <dbName>            Get the batched migrations`);
+        console.log(`  to-esm <dbName>           Convert migrations to ESM`);
+        console.log(`  to-cjs <dbName>           Convert migrations to CJS`);
         console.log(`  help                      Show this help message\n`);
     });
 //---------------------------------------
@@ -40,5 +42,15 @@ program
     .command("batch <dbName>")
     .description("Get the batched migrations")
     .action((dbName) => require("./src/commands/batch")(dbName));
+//---------------------------------------
+program
+    .command("to-esm <dbName>")
+    .description("Convert migrations to ESM")
+    .action((dbName) => require("./src/commands/to-esm")(dbName));
+//---------------------------------------
+program
+    .command("to-cjs <dbName>")
+    .description("Convert migrations to CJS")
+    .action((dbName) => require("./src/commands/to-cjs")(dbName));
 //---------------------------------------
 program.parse(process.argv);

@@ -6,7 +6,7 @@
 
 [![npm version](https://img.shields.io/npm/v/mysql-migration.svg?style=flat-square)](https://www.npmjs.com/package/mysql-migration)&nbsp;&nbsp;
 [![License](https://img.shields.io/badge/license-Custom-blue.svg?style=flat-square)](LICENSE.md)&nbsp;&nbsp;
-[![Node.js](https://img.shields.io/badge/node-%3E%3D16-brightgreen.svg?style=flat-square)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org/)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 ## 📋 Prerequisites
 
-- **Node.js** v16 or later.
+- **Node.js** v18 or later.
 - **MySQL** instance reachable from where you run the CLI.
 - A project workspace where you can store migration files and configuration.
 
@@ -38,15 +38,17 @@ Or run ad hoc without installing by prefixing commands with `npx`.
 
 ## 🚀 Quick Start
 
-**1️⃣ Create a configuration file**
+**1️⃣ Initialize the project**
 
-Create `mysql-migration.config.json` in your project root (see [Configuration](#%EF%B8%8F-configuration)).
-
-**2️⃣ Initialize the migrations table**
+Run the init command to scaffold the `migrations/` directory and create a default configuration file:
 
 ```bash
 npx mysql-migration init
 ```
+
+**2️⃣ Configure your database**
+
+Edit the generated `migrations/mysql-migration.config.json` file with your database credentials.
 
 **3️⃣ Generate your first migration**
 
@@ -91,11 +93,21 @@ Add as many database entries as you need. You can then target each one via the C
 | Command | Description |
 |---------|-------------|
 | `npx mysql-migration help` | 📚 Show all available commands |
-| `npx mysql-migration init` | 🎬 Initialize the migrations table |
+| `npx mysql-migration init` | 🎬 Scaffold migrations directory and config |
 | `npx mysql-migration create <name> <dbName>` | ✏️ Scaffold a timestamped migration file |
 | `npx mysql-migration run [dbName]` | ▶️ Execute all pending migrations |
 | `npx mysql-migration rollback <dbName> <batch>` | ⏪ Roll back migrations to specified batch |
 | `npx mysql-migration batch <dbName>` | 📊 Display recorded batches |
+| `npx mysql-migration to-cjs <dbName>` | 🔄 Convert migrations to CommonJS |
+| `npx mysql-migration to-esm <dbName>` | 🔄 Convert migrations to ESM |
+
+### 🎬 Initialize Project
+
+```bash
+npx mysql-migration init
+```
+
+Scaffolds the `migrations/` directory and creates a default `mysql-migration.config.json` file. Run this once when setting up the tool in a new project.
 
 ### ✏️ Create a New Migration
 
@@ -128,6 +140,20 @@ npx mysql-migration batch database-name
 ```
 
 View the recorded batches to understand which migrations were executed together.
+
+### 🔄 Convert Module System
+
+If you need to switch your project between CommonJS (`require`) and ES Modules (`import/export`), you can batch convert your existing migration files.
+
+**Convert to CommonJS:**
+```bash
+npx mysql-migration to-cjs database-name
+```
+
+**Convert to ES Modules:**
+```bash
+npx mysql-migration to-esm database-name
+```
 
 ## 🔧 Troubleshooting
 

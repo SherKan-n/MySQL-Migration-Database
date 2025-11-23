@@ -21,6 +21,7 @@ const {
     getCurrentBatch,
     insertMigration,
 } = require("../utils/functions");
+const { loadModule } = require("../utils/moduleLoader");
 //==============================================================================
 async function run_migration(dbName) {
     const connection = {},
@@ -66,15 +67,13 @@ async function run_migration(dbName) {
         //---------------------------------------
         for (let file of pendingMigrations) {
             const migrationPath = `${currentPath}/migrations/${dbName}_db/${file}`;
-            const migration = require(migrationPath);
+            const migration = await loadModule(migrationPath);
             try {
                 await migration.up(connection[dbName]);
                 await insertMigration(connection[dbName], file.replace(".js", ""), batch);
                 console.log("\x1b[36m%s\x1b[0m", `Migrated: "${file}" successfully.`);
             } catch (err) {
                 console.warn("\x1b[33m%s\x1b[0m", `Warning: "${err}" in migration "${file}".`);
-            } finally {
-                delete require.cache[require.resolve(migrationPath)];
             }
         }
         console.log("\x1b[32m%s\x1b[0m", "All migrations have been completed successfully.\n");
@@ -115,15 +114,13 @@ async function run_migration(dbName) {
         //---------------------------------------
         for (let [file, key, batch] of migrations) {
             const migrationPath = `${currentPath}/migrations/${key}_db/${file}`;
-            const migration = require(migrationPath);
+            const migration = await loadModule(migrationPath);
             try {
                 await migration.up(connection[key]);
                 await insertMigration(connection[key], file.replace(".js", ""), batch);
                 console.log("\x1b[36m%s\x1b[0m", `Migrated: "${file}" in database "${key}" successfully.`);
             } catch (err) {
                 console.warn("\x1b[33m%s\x1b[0m", `Warning: "${err}" in migration "${file}" in database "${key}".`);
-            } finally {
-                delete require.cache[require.resolve(migrationPath)];
             }
         }
         console.log("\x1b[32m%s\x1b[0m", "All migrations have been completed successfully.\n");

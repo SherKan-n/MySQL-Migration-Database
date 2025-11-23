@@ -2,6 +2,7 @@
 //---------------------------------------
 const fs = require("fs");
 const dayjs = require("dayjs");
+const path = require("path");
 //---------------------------------------
 const currentPath = process.cwd();
 const config = require(`${currentPath}/migrations/mysql-migration.config.json`);
@@ -29,7 +30,22 @@ function create_migration(migrationName, dbName) {
    if (fs.existsSync(filePath))
       console.warn("\x1b[33m%s\x1b[0m", `Warning: File "${fileName}" already exists in the "migrations" directory.`);
    else {
-      const dataText = `module.exports = {
+      let isEsm = false;
+      try {
+         const packageJsonPath = path.join(currentPath, "package.json");
+         if (fs.existsSync(packageJsonPath)) {
+            const packageJson = require(packageJsonPath);
+            if (packageJson.type === "module") {
+               isEsm = true;
+            }
+         }
+      } catch (e) {
+         // Ignore error, default to CJS
+      }
+
+      const exportPrefix = isEsm ? "export default" : "module.exports =";
+
+      const dataText = `${exportPrefix} {
    up: (connection) => {
       const query = "";
 
