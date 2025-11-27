@@ -68,7 +68,7 @@ async function back_migration(dbName, batch) {
             if (!fs.existsSync(`${currentPath}/migrations/${dbName}_db/${file.migration}.js`)) {
                 console.warn("\x1b[33m%s\x1b[0m", `Warning: Migration "${file.migration}" not found.`);
             } else {
-                const migrationPath = `${currentPath}/migrations/${dbName}_db/${file.migration}`;
+                const migrationPath = `${currentPath}/migrations/${dbName}_db/${file.migration}.js`;
                 const migration = await loadModule(migrationPath);
                 try {
                     await migration.down(connection[dbName]);
