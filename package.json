@@ -1,6 +1,6 @@
 {
    "name": "mysql-migration",
-   "version": "1.3.0",
+   "version": "1.4.0",
    "description": "Migration for mysql database with TypeScript support, transactions, and environment variables",
    "main": "index.js",
    "types": "index.d.ts",
