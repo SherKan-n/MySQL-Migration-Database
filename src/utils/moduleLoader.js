@@ -1,4 +1,3 @@
-const path = require("path");
 const { pathToFileURL } = require("url");
 
 /**

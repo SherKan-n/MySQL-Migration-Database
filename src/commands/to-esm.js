@@ -1,26 +1,33 @@
 "use strict";
-//---------------------------------------
+
 const fs = require("fs");
 const path = require("path");
-//---------------------------------------
+
 const currentPath = process.cwd();
-const config = require(`${currentPath}/migrations/mysql-migration.config.json`);
-//---------------------------------------
+const configPath = path.join(currentPath, "migrations", "mysql-migration.config.json");
+
+const { loadConfig, getDatabaseNames, isValidDatabase } = require("../utils/config");
+
+/**
+ * Convert migration files within a database directory from CommonJS to ESM format.
+ * @param {string} dbName - Target database identifier.
+ * @returns {void}
+ */
 function convert_to_esm(dbName) {
-    //---------------------------------------
-    const databases = Object.keys(config.databases);
-    //---------------------------------------
-    if (!databases.includes(dbName)) {
-        console.error("\x1b[31m%s\x1b[0m", `Error: Invalid database name "${dbName}" can be: ${databases.join(", ")}.`);
+    const config = loadConfig(configPath);
+    const databases = getDatabaseNames(config);
+
+    if (!isValidDatabase(dbName, config)) {
+        console.error("\x1b[31m%s\x1b[0m", `Error: Invalid database name "${dbName}". Available databases: ${databases.join(", ")}.`);
         process.exit(1);
     }
-    //---------------------------------------
-    const migrationsDir = `${currentPath}/migrations/${dbName}_db`;
+
+    const migrationsDir = path.join(currentPath, "migrations", `${dbName}_db`);
     if (!fs.existsSync(migrationsDir)) {
         console.error("\x1b[31m%s\x1b[0m", `Error: Migrations directory for "${dbName}" not found.`);
         process.exit(1);
     }
-    //---------------------------------------
+
     const files = fs.readdirSync(migrationsDir);
     let convertedCount = 0;
 
@@ -45,5 +52,5 @@ function convert_to_esm(dbName) {
         console.log("\x1b[32m%s\x1b[0m", `\nSuccessfully converted ${convertedCount} files to ESM.`);
     }
 }
-//---------------------------------------
+
 module.exports = convert_to_esm;

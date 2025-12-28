@@ -18,7 +18,9 @@
 - ⏱️ **Timestamped migration files** — Generated with a single command
 - ⚡ **Forward and backward execution** — Run or roll back batches confidently
 - 🔧 **Scriptable CLI** — Plugs into CI/CD pipelines via standard Node.js tooling
-- 📦 **Zero dependencies** — Lightweight and fast
+- 🔐 **Transactional migrations** — Automatic rollback on failure
+- 👁️ **Dry-run mode** — Preview migrations without executing
+- 📘 **TypeScript support** — Full type definitions included
 
 ## 📋 Prerequisites
 
@@ -56,20 +58,23 @@ Edit the generated `migrations/mysql-migration.config.json` file with your datab
 npx mysql-migration create add_users_table main-db
 ```
 
-**4️⃣ Apply pending migrations**
+**4️⃣ Preview migrations (optional)**
 
 ```bash
-npx mysql-migration run main-db
+npx mysql-migration run main-db --dry-run
+```
+
+**5️⃣ Apply pending migrations**
+
+```bash
+npx mysql-migration run main-db --transaction
 ```
 
 ## ⚙️ Configuration
 
-The CLI reads settings from `mysql-migration.config.json`. Define each database you manage inside the `databases` object. Every entry requires the connection credentials documented below:
+The CLI reads settings from `mysql-migration.config.json`. Define each database you manage inside the `databases` object.
 
-- `host`: MySQL server host name or IP.
-- `database`: Database schema name.
-- `user`: User with migration privileges.
-- `password`: Corresponding password.
+### Basic Configuration
 
 ```json
 {
@@ -84,8 +89,6 @@ The CLI reads settings from `mysql-migration.config.json`. Define each database 
 }
 ```
 
-Add as many database entries as you need. You can then target each one via the CLI commands below.
-
 ## 📖 Usage
 
 ### 📝 Available Commands
@@ -96,6 +99,8 @@ Add as many database entries as you need. You can then target each one via the C
 | `npx mysql-migration init` | 🎬 Scaffold migrations directory and config |
 | `npx mysql-migration create <name> <dbName>` | ✏️ Scaffold a timestamped migration file |
 | `npx mysql-migration run [dbName]` | ▶️ Execute all pending migrations |
+| `npx mysql-migration run [dbName] --dry-run` | 👁️ Preview migrations without executing |
+| `npx mysql-migration run [dbName] --transaction` | 🔐 Run migrations with automatic rollback on error |
 | `npx mysql-migration rollback <dbName> <batch>` | ⏪ Roll back migrations to specified batch |
 | `npx mysql-migration batch <dbName>` | 📊 Display recorded batches |
 | `npx mysql-migration to-cjs <dbName>` | 🔄 Convert migrations to CommonJS |
@@ -115,7 +120,51 @@ Scaffolds the `migrations/` directory and creates a default `mysql-migration.con
 npx mysql-migration create migration-name database-name
 ```
 
-A new file appears in the `migrations/` directory, timestamped and ready for your SQL `up` and `down` statements.
+A new file appears in the `migrations/` directory, timestamped and ready for your SQL `up` and `down` statements. The generated migration uses modern async/await syntax:
+
+```javascript
+module.exports = {
+   /**
+    * Run the migration
+    * @param {import('mysql2').Connection} connection
+    */
+   up: async (connection) => {
+      const query = "CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(255))";
+      await connection.promise().query(query);
+   },
+
+   /**
+    * Rollback the migration
+    * @param {import('mysql2').Connection} connection
+    */
+   down: async (connection) => {
+      const query = "DROP TABLE users";
+      await connection.promise().query(query);
+   }
+};
+```
+
+### 👁️ Dry-Run Mode
+
+Preview migrations without executing them:
+
+```bash
+npx mysql-migration run main-db --dry-run
+```
+
+This is useful for CI/CD pipelines or production deployments where you want to verify what will change before applying it.
+
+### 🔐 Transactional Migrations
+
+Run migrations with automatic rollback on failure:
+
+```bash
+npx mysql-migration run main-db --transaction
+```
+
+If any migration fails, all migrations in the current batch will be automatically rolled back, keeping your database in a consistent state.
+
+**Note:** Transactions work best with migrations that don't include DDL statements that cause implicit commits (like `CREATE TABLE`, `DROP TABLE`, etc. in MySQL).
 
 ### ▶️ Run Pending Migrations
 
@@ -146,20 +195,50 @@ View the recorded batches to understand which migrations were executed together.
 If you need to switch your project between CommonJS (`require`) and ES Modules (`import/export`), you can batch convert your existing migration files.
 
 **Convert to CommonJS:**
+
 ```bash
 npx mysql-migration to-cjs database-name
 ```
 
 **Convert to ES Modules:**
+
 ```bash
 npx mysql-migration to-esm database-name
 ```
+
+## 📘 TypeScript Support
+
+The package includes full TypeScript type definitions. Import types in your project:
+
+```typescript
+import type { Migration, Connection } from 'mysql-migration';
+
+// Your migration file can use these types
+const myMigration: Migration = {
+   up: async (connection: Connection) => {
+      // ...
+   },
+   down: async (connection: Connection) => {
+      // ...
+   }
+};
+```
+
+For IDE autocomplete support, ensure you have the package installed and your TypeScript configuration includes `node` types.
 
 ## 🔧 Troubleshooting
 
 - **Authentication errors**: Verify credentials in `mysql-migration.config.json` match your MySQL user.
 - **Connection refused**: Ensure the MySQL server accepts remote connections from your host and the port is open.
 - **Missing migrations folder**: Run `npx mysql-migration init` to scaffold the `migrations/` directory and configuration file.
+- **Connection leaks**: The tool now automatically manages connections with proper cleanup, even on errors.
+
+## 🔒 Security Best Practices
+
+1. **Limit access** to the machine or CI secrets storage that holds your config file
+2. **Never commit** `mysql-migration.config.json` with real passwords to version control
+3. **Use dry-run mode** before running migrations in production
+4. **Use transactional migrations** for safer deployments
 
 ## 💬 Support
 
